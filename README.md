@@ -494,7 +494,7 @@ LongSparseArray<V> in place of HashMap<Long,V>
 2.内存泄露可以简单理解成：生命周期长的对象不正确持有了持有了生命周期短的对象，导致生命周期短的对象无法回收。
 3.比如Activity实例被Application对象持有，Activity实例被静态变量持有。
 
-* 在assert文件夹下存放单个文件的大小不能超过1M，如果读取超过1M的文件会报 "Data exceeds UNCOMPRESS_DATA_MAX (1314625 vs 1048576)" 的IOException。如果一定要存储，可以分割文件，再去合并文件
+* 在assets文件夹下存放单个文件的大小不能超过1M，如果读取超过1M的文件会报 "Data exceeds UNCOMPRESS_DATA_MAX (1314625 vs 1048576)" 的IOException。如果一定要存储，可以分割文件，再去合并文件
 
 * 在Android library中不能使用switch-case语句访问资源ID，因为case分支后面跟的参数必须是常数，而library中的每一个资源ID都没有被声明为final。
 
@@ -621,6 +621,85 @@ e.printStackTrace();
 
 * Android有一个隐藏的类可以判断文本输入框内输入的是不是表情，这个类就是 android.text.Emoji类，它的isEmoji(int codePoint)方法可以直接判断出来是不是表情。这个类是隐藏的，如果要用到则需要将它拷贝出来。
 
+*  布局中不得不使用ViewGroup 多重嵌套时，不要使用LinearLayout 嵌套，改用RelativeLayout，可以有效降低嵌套数。
+
+*  不能使用ScrollView 包裹ListView/GridView/ExpandableListVIew;因为这样会把ListView 的所有Item 都加载到内存中，要消耗巨大的内存和cpu 去绘制图面。
+
+*  不要通过Intent 在Android 基础组件之间传递大数据（binder transaction缓存为1MB），可能导致OOM。
+
+*  在Application 的业务初始化代码加入进程判断，确保只在自己需要的进程初始化。特别是后台进程减少不必要的业务初始化。
+
+*  将android:allowbackup 属性设置为false，防止adb backup 导出数据。
+
+* 除非min API level >=17，请注意addJavascriptInterface 的使用
+```
+说明：
+API level>=17，允许js 被调用的函数必须以@JavascriptInterface 进行注解，因此不受影响； 对于API level < 17，尽量不要使用addJavascriptInterface，如果一定要用，那么：
+1) 使用https 协议加载URL，使用证书校验，防止访问的页面被篡改挂马；
+2) 对加载URL 做白名单过滤、完整性校验等防止访问的页面被篡改；
+3) 如果加载本地html,应该会HTML 内置在APK 中，以及对HTML 页面进行完整性校验。
+
+```
+
+* 如何动态修改AlertDialog的Button样式,
+```
+//监听Dialog的setOnShowListener方法
+dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+    @Override
+    public void onShow(final DialogInterface dialog) {
+      Button negativeButton = ((AlertDialog)dialog).getButton(DialogInterface.BUTTON_NEGATIVE);
+      Button positiveButton = ((AlertDialog)dialog).getButton(DialogInterface.BUTTON_POSITIVE);
+      negativeButton.invalidate();
+      positiveButton.invalidate();
+    }
+});
+dialog.show();
+
+```
+
+* 升级 RecycleView 版本到 25.1.0 及以上使用 Prefetch 功能，可[参考 RecyclerView 数据预取](https://juejin.im/entry/58a3f4f62f301e0069908d8f)。
+
+* 如果 Item 高度是固定的话，可以使用 RecyclerView.setHasFixedSize(true); 来避免 requestLayout 浪费资源；
+
+* 如果不要求动画，可以通过 ((SimpleItemAnimator) rv.getItemAnimator()).setSupportsChangeAnimations(false); 把默认动画关闭来提升效率。
+
+* 通过 RecycleView.setItemViewCacheSize(size); 来加大 RecyclerView 的缓存，用空间换时间来提高滚动的流畅性。
+
+* 如果多个 RecycledView 的 Adapter 是一样的，比如嵌套的 RecyclerView 中存在一样的 Adapter，可以通过设置 RecyclerView.setRecycledViewPool(pool); 来共用一个 RecycledViewPool。
+
+* 对 ItemView 设置监听器，不要对每个 Item 都调用 addXxListener，应该大家公用一个 XxListener，根据 ID 来进行不同的操作，优化了对象的频繁创建带来的资源消耗。
+
+* 通过 getExtraLayoutSpace 来增加 RecyclerView 预留的额外空间（显示范围之外，应该额外缓存的空间），如下所示
+```
+new LinearLayoutManager(this) {
+    @Override
+    protected int getExtraLayoutSpace(RecyclerView.State state) {
+        return size;
+    }
+};
+
+```
+
+* WebView 在 API 21之后,写Cookie的时候默认禁止了跨域写cookie,需要通过代码,来设置开启跨域请求
+```
+ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            CookieManager.getInstance().setAcceptThirdPartyCookies(WebView, true);
+        }
+```
+
+* 使用IdleHandler,替代Handler.postDelay(),IdleHandler是在我们的onResume和measure, layout, draw这么message执行结束之后， 提供了他们执行完毕的回调. [看这里](https://wetest.qq.com/lab/view/352.html)
+```
+ Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
+            @Override
+            public boolean queueIdle() {
+                //TODO...
+                return false;
+            }
+        });
+```
+
+
+
 #### 摘自[如下地址](https://github.com/jiang111/awesome-android-tips/blob/master/Authors.md)
 
 
@@ -630,7 +709,7 @@ e.printStackTrace();
 
 ### License
 
-    Copyright 2016 NewTab
+    Copyright 2018 NewTab
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

@@ -1,4 +1,4 @@
-####摘自如下地址(部分)：
+#### 摘自如下地址(部分)：
 >* http://oakzmm.com/2015/08/04/cool-Android-api/
 >* http://weibo.com/liangfeizc?from=feed&loc=nickname
 >* http://zhuanlan.zhihu.com/zmywly8866/20309921
@@ -15,3 +15,5 @@
 >* https://zhuanlan.zhihu.com/p/25120433
 >* https://juejin.im/post/58c407ee44d90400698757d8
 >* https://github.com/xxv/android-lifecycle
+>* 阿里巴巴android开发手册
+>* https://juejin.im/post/5baedbf05188255c596714ab
